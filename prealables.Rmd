@@ -1,0 +1,266 @@
+---
+title: "Quelques bases pour utiliser R"
+author: "Joël Gombin"
+date: "12 janvier 2016"
+output:
+  html_document:
+    theme: journal
+    self_contained: false
+    keep_md: true
+    fig_width: 10
+    fig_height: 7
+    toc: true
+    toc_depth: 2
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Comment trouver de l'aide ?
+
+- `help(foo)` ou `?foo` dans R (`??foo` si on veut chercher parmi tous les packages)
+- chercher en ligne, par exemple dans [RDocumentation](http://www.rdocumentation.org)
+- de fait, [Stackoverflow](http://stackoverflow.com/questions/tagged/r) devient une source majeure d'aide 
+- les [meetups R](http://www.meetup.com/rparis/) sont souvent assez cools.
+- lire les blogs : agrégés sur [RBloggers](http://www.r-bloggers.com)
+- Manuels en ligne et en français : 
+- PARADIS E., [*R pour les débutants*](http://cran.r-project.org/doc/contrib/Paradis-rdebuts_fr.pdf)
+- BARNIER J., [*R pour les sociologues*](https://alea.fr.eu.org/pages/intro-R)
+- Groupe ElementR, [*R et espace*](http://framabook.org/r-et-espace/)
+- etc.
+
+## [RStudio](rstudio.com): votre meilleur ami !
+
+Environnement de développement (IDE) et interface graphique (GUI). Équipe de développement extrêmement dynamique et compétente. 
+
+## Lire et écrire du code
+
+- Créer des objets ou afficher des résultats : l'opérateur d'assignation (`=` ou plus généralement `<-`)
+
+- Lire de droite à gauche.
+
+```{r sens_lecture, eval = FALSE}
+
+y <- f(x)
+
+```
+
+- Lire du centre vers la périphérie (ou mieux, utiliser des _pipes_ !).
+
+```{r}
+# charger un fichier csv
+eur14ParisBV <- read.csv("./data/européennes2014ParisBV.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+
+# pour lire des gros fichiers, préférer le package readr et la fonction read_csv
+
+# autre opérateur d'assignation
+
+a = 4
+
+# Voir le nom des variables
+names(eur14ParisBV)
+
+# Voir les premières lignes du dataframe 
+head(eur14ParisBV)
+
+# Voir les dernières lignes du dataframe
+tail(eur14ParisBV)
+```
+
+- Pourquoi coder au lieu de cliquer ?
+Reproducibilité, économies d'échelle, documentation de la recherche : ["reproducible research"](https://cran.r-project.org/web/views/ReproducibleResearch.html)
+
+- Pour qui coder ? Lisibilité, conventions d'écriture et documentation
+Avant tout soi-même... plus tard ! 
+
+## Les objets 
+
+Dans R, tout est objet (ou fonction, mais les fonctions elles-mêmes sont des objets...). Ces objets, plus ou moins complexes, possèdent une classe. 
+
+### Les types de base
+
+- `integer`
+- `numeric`
+- `character`
+
+### Les classes de base
+
+- `vector` : dans R, le vecteur est roi : on cherche systématiquement à vectoriser les calculs
+- `factor` : variable catégorielle
+- `matrix` et `array` : matrice ou tableau multidimensionnel ; ne contient que des `integer` ou `numeric`
+- `list` : une liste d'objets quelconques, sans structure particulière (similaire au `json`)
+- `data.frame` : un tableau de données, qui peuvent être numériques, des `character` ou des `factor` (ou autre : listes, `data.frames`...)
+
+### Les autres classes
+
+À partir de ces objets élémentaires, on peut construire toutes sortes d'objets complexes (dont des objets spatiaux !). Ce type d'objet est défini par une _classe_, qui définit la _structure_ des objets et les _méthodes_ (fonctions) qu'on peut leur appliquer. 
+
+Dans la plupart des cas, on n'a pas trop à se soucier des classes dans R, on se contente d'utiliser des fonctions standard ("génériques") qui savent quoi faire selon la classe de l'objet considéré (ex : `plot`, `summary`, `print`...).
+
+## Importer et exporter des données
+
+- Fonctions de type `read.format()` pour la lecture et `write.format()` pour l'écriture
+- Fichiers texte (.txt ou .csv) : `read.table()`, `read.csv()` (ou package `readr`)
+- Fichiers Excel (.xls ou .xlsx) : `read.xls()` du package `gdata`, package `readxl` (mais à éviter : sauver en CSV !)
+- Fichiers SAS, SPSS, Stata etc. : fonctions du package `foreign` (ou, mieux, du package `haven`)
+- Formats de stockage de R (.RData) : fonctions `save()` et `load()`
+- Bases de données externes (PostgreSQL, SQLite, etc.) : packages dédiés ou interface unifiée par le package `dplyr`
+
+Si on ne veut pas trop se poser de question : le package `rio` propose une interface unifiée pour [la plupart des formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html). 
+
+## Manipuler les données
+
+```{r}
+## examiner la structure d'un objet
+
+str(eur14ParisBV)
+
+## avoir un résumé d'un objet
+
+summary(eur14ParisBV)
+
+## désigner une variable au sein d'un data.frame
+
+head(eur14ParisBV$CodeInsee)
+
+## ou encore
+
+head(eur14ParisBV[,"CodeInsee"])
+
+## récupérer certaines lignes
+
+eur14ParisBV[1:5,]
+
+## ou encore
+
+eur14ParisBV[c(1,2,4,9),]
+
+## on peut évidemment combiner sélection de ligne et de variable
+
+eur14ParisBV[1:5, "Liste"]
+
+eur14ParisBV[1:5, c("Liste", "Voix")]
+
+eur14ParisBV[1:5, c(8,9)]
+
+
+## Là où ça devient vraiment intéressant, c'est quand on fait de la sélection conditionnelle...
+
+head(eur14ParisBV[eur14ParisBV$Inscrits > 1500, c("CodeBV", "CodeInsee", "Voix")])
+
+```
+
+## _Oui, mais M'sieur, c'est illisible votre truc..._
+
+C'est vrai ! On peut utiliser une syntaxe plus moderne et, surtout, plus lisible grâce au package `dplyr` de Hadley Wickham.
+
+```{r}
+
+# si le package n'est pas installé :
+  
+  # install.packages("dplyr")
+  
+  ## on commence par charger le package grâce à la fonction library
+  
+  library(dplyr)
+
+## on peut maintenant créer un pipe de données, qui se lit de gauche à droite
+
+eur14ParisBV %>%
+  filter(Inscrits > 1500) %>%
+  select(CodeBV, CodeInsee, Voix) %>%
+  glimpse()
+
+## et si on veut modifier nos données, alors ?
+
+eur14ParisBV <- eur14ParisBV %>%
+  mutate(Abstention = Inscrits - Votants)
+
+eur14ParisBV %>% glimpse()
+
+eur14ParisBV %>%
+  mutate(taille = ifelse(Inscrits > 1500, 
+                         "Gros",
+                         "Petit")
+  ) %>%
+  select(taille) %>%
+  table()
+
+eur14ParisBV %>%
+  mutate(taille = ifelse(Inscrits > 1500, 
+                         "Gros",
+                         "Petit")
+  ) %>%
+  select(taille) %>%
+  table() %>%
+  barplot()
+
+
+```
+
+Notre jeu de données a un problème : on a une ligne par candidat. Il nous faut le passer en format "normal", avec une colonne par candidat. Dans Excel, on ferait un tableau croisé dynamique... et dans R ?
+
+Il y a plusieurs manières de faire ça. La plus moderne (et simple !) est sans doute la suivante :
+  
+```{r}
+
+# il faut installer tidyr si ce n'est pas fait :
+# install.packages("tidyr")
+
+# on charge le package tidyr
+library(tidyr)
+
+## testons avant de modifier le dataset...
+
+eur14ParisBV %>% 
+  spread(Liste, Voix) %>%
+  head()
+
+## on vérifie que le nombre de lignes est correct
+
+eur14ParisBV %>% 
+  spread(Liste, Voix) %>%
+  nrow()
+
+## BOUM ! ça marche. Modifions le dataset :
+
+eur14ParisBV <- eur14ParisBV %>% 
+  spread(Liste, Voix)
+
+## On peut maintenant calculer les scores en % des inscrits :
+
+eur14ParisBVins <- eur14ParisBV %>%
+  mutate_each(funs(. / Inscrits * 100), ARTHAUD:VOLGANLI)
+
+eur14ParisBVins %>%
+  glimpse()
+
+## ou en % des exprimés !
+
+eur14ParisBVexp <- eur14ParisBV %>%
+  mutate_each(funs(. / Exprimés * 100), ARTHAUD:VOLGANLI)
+
+eur14ParisBVexp %>%
+  glimpse()
+
+## mettre tout dans le même dataframe est (pour l'instant) un peu tricky :
+
+eur14ParisBVTout <- eur14ParisBV
+eur14ParisBVTout[,paste0(names(eur14ParisBVins)[11:41], ".ins")] <- eur14ParisBVins[,11:41]
+eur14ParisBVTout[,paste0(names(eur14ParisBVexp)[11:41], ".exp")] <- eur14ParisBVexp[,11:41]
+
+head(eur14ParisBVTout)
+
+
+## Et si on veut regrouper les données par arrondissement ?
+
+eur14ParisBVArrdt <- eur14ParisBV %>%
+  group_by(CodeInsee) %>%
+  summarise_each(funs(sum(.)), Inscrits:VOLGANLI)
+
+eur14ParisBVArrdt %>%
+  glimpse()
+
+```

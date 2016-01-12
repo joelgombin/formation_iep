@@ -1,0 +1,158 @@
+---
+title: "Bases de données"
+author: "Joël Gombin"
+date: "12 janvier 2016"
+output:
+  html_document:
+    theme: journal
+    self_contained: false
+    keep_md: true
+    fig_width: 10
+    fig_height: 7
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Éléments sur les bases de données 
+
+## Pourquoi utiliser des bases de données ?
+
+R a beaucoup de qualités, mais aussi des défauts. En particulier, il charge en mémoire (vive) l'intégralité des données qu'il utilise. Par conséquent, ses capacités sont limitées par celles de la RAM de la machine qu'on utilise. Dans certains cas, on peut s'en sortir en utilisant une machine plus puissante (serveur distant, par exemple) ; mais parfois même cette solution trouve ses limites, lorsqu'on a de très grosses données. 
+
+La solution consiste alors à utiliser une base de données : les donnée sont stockées sur le disque dur, et le temps d'accès aux données du volume dont on a besoin, pas de la taille totale de la BDD. 
+
+Lorsque les données peuvent être chargées intégralement en mémoire, il n'y a pas vraiment d'intérêt à utiliser une base de données...
+
+## Le SQL
+
+Le SQL (strutured query language) est le langage utilisé pour communiquer avec une base de données (relationnelle, SGBDR). Ce langage est ancien (1974) et est censé être normalisé... sauf qu'il ne l'est pas vraiment. Chaque système de BDD (MySQL, SQLite, PostgreSQL) implémente une partie du langage SQL, et certains implémentent des fonctions qui ne font pas partie du langage. Donc le choix de la BDD utilisée n'estg pas neutre.
+
+De plus, recourir au SQL signifie qu'il faut maîtrise ce langage... qui n'est pas particulièrement simple ni moderne. Et puis, on n'est pas là pour apprendre des langages supplémentaires ! 
+
+## Enters `dplyr`
+
+Le package `dplyr` propose une interface (une API) commune, quelle que soit la source des données (`dataframe` classique, `data.table` ou base de données SQL). Le même code (ou presque) peut donc être utilisé pour traiter des données en mémoire ou dans une BDD. `dplyr` traduit le code R en SQL, l'envoie à la BDD ; la BDD l'exécute et renvoie les résultats à R. Mais comme `dplyr` est intelligent il s'assure de ne récupérer que ce dont il a exactement besoin dans l'immédiat, soit en général un très petit volume de données. 
+
+La syntaxe est simple. Il faut commencer par se connecter à la base de données (par simplicité, on commence ici avec une BDD SQLite, la plus simple à configurer, et on y importe les données - ici l'enquête FES2012 - via R).
+
+```{r}
+library(dplyr)
+library(DBI)
+library(RSQLite)
+mydb <- src_sqlite("./database/db.sqlite3", create = TRUE)
+
+# on importe un jeu de données (au format stata)
+
+library(haven)
+FES2012 <- read_stata("./data/FES2012-v11092012.dta")
+
+# on met ce jeu de données dans notre base de données SQLite
+copy_to(mydb, FES2012, temporary = FALSE)
+
+# du coup on peut supprimer la copie locale
+rm(FES2012)
+
+tblFES2012 <- tbl(mydb, from = "FES2012")
+
+```
+
+On peut désormais traiter `tblFES2012` exactement comme si c'était un data.frame classique :
+
+```{r}
+
+glimpse(tblFES2012)
+
+tblFES2012 %>%
+  group_by(v3) %>% # Candidate for whom the respondent voted
+  summarise(n = sum(poids3)) # penser à pondérer ! 
+
+```
+
+
+Il faut toutefois comprendre comment cela fonctionne : R ne récupère pas les données... jusqu'à ce qu'il les récupère, le plus tard possible. Mais certaines opérations complexes (l'acception de complexe dépend de la base de données utilisée : SQLite, MySQL, PostgreSQL, MonnetDB...) ne peuvent être réalisées que dans R. Il faut donc savoir à quel moment on récupère les données dans R. On peut forcer cette étape avec le verbe `collect` :
+
+```{r}
+
+library(FactoMineR)
+
+df_acm <- tblFES2012 %>%
+  select(v1, v3, h1, c4, sd3a, sd14_pcs, r7a, poids3) %>%
+  filter(v1 == 1) %>%
+  collect() %>% # on met collect ici car les opérations ultérieures (transformations en facteurs) ne peuvent être accomplies côté SQL
+  mutate(v1 = factor(v1), 
+         v3 = factor(v3), 
+         h1 = factor(h1), 
+         c4 = factor(c4), 
+         sd14_pcs = factor(sd14_pcs), 
+         r7a = factor(r7a)) %>%
+  as.data.frame()
+acm <- MCA(df_acm[,1:7], quanti.sup = 5, graph = FALSE, row.w = df_acm[,8])
+  
+plot.MCA(acm, choix = "ind", invisible = "ind", selectMod = "contrib 10")  
+
+```
+
+
+On peut également utiliser certaines bibliothèques qui acceptent comme input directement une base de données SQL, comme l'excellent [package `survey`](http://r-survey.r-forge.r-project.org/survey/svy-dbi.html) : 
+
+```{r}
+library(survey)
+library(DBI)
+mysurvey <- svydesign(~in05 + ~in06 + ~in07, weights = ~poids3, data = "FES2012", dbname = "./database/db.sqlite3", dbtype = "SQLite") # je ne suis pas sûr des clusters et des strates ici...
+
+mysurvey
+
+# proportion par vote en 2012
+
+svymean(~factor(v3), mysurvey)
+```
+
+Anthony Damico a rassemblé un [très grand nombre de sources de microdata](http://www.asdfree.com/) adaptées pour R et avec des schémas de sampling et de pondération bien documentés, et documenté leur analyse avec R.
+
+## Quelle base de donnnées utiliser ?
+
+`dplyr` et d'autres packages permettent donc d'interagir aisément avec une BDD. Mais laquelle choisir ?
+
+- SQLite est la plus simple sans doute à utiliser, légère, mais aussi peu de capacités (pas de "windows functions"...)
+- MySQL est la plus classique. Plus de fonctionnalités, mais pas de "windows functions" non plus et compliquée à administrer.
+- PostgreSQL est l'une des plus puissantes et robustes. Mais compliquée à administrer.
+- MonetDB est orientée "colonnes", c'est-à-dire très adaptée à un usage de recherche (beaucoup de reads et peu de write, opérations d'agrégation sur un sous-ensemble de colonnes...). Extrêmement performant pour des gros volumes de données. Depuis très peu, grâce au package [`MonetDBLite`](https://www.monetdb.org/blog/monetdblite-r), on peut même l'utiliser sans installation ni configuration préalable, comme SQLite. Encore en développement toutefois, donc un peu instable.
+
+## Un exemple plus substantiel
+
+Travaillons sur un exemple où la taille du jeu de données nécessite réellement d'utiliser une BDD externe : les fichiers détail du recensement.
+
+J'ai écrit un petit package qui permet de charger directement un fichier détail (ici 2,6M+ lignes) dans une BDD MonetDB:
+
+```{r, eval=FALSE}
+# library(devtools)
+# install.packages(c("MonetDB.R", "MonetDBLite"), repos=c("http://dev.monetdb.org/Assets/R/", "http://cran.rstudio.com/"))install_github("joelgombin/Insee2MonetDB")
+# install_github("joelgombin/Insee2MonetDB")
+
+library(Insee2MonetDB)
+
+# liste des fichiers détail : http://www.insee.fr/fr/themes/detail.asp?reg_id=0&ref_id=fd-rp2012
+
+Insee2MonetDB(url = "http://telechargement.insee.fr/fichiersdetail/RP2012/txt/RP2012_LOGEMTza_txt.zip", folder = "./database")
+```
+
+```{r}
+library(MonetDB.R)
+monet <- src_monetdb(embedded = "./database")
+
+RP_LOG_IDF_2012 <- tbl(monet, from = "logemtza_2012")
+
+glimpse(RP_LOG_IDF_2012)
+
+```
+
+Et maintenant on peut travailler directement avec notre table de données :
+
+```{r}
+
+```
+

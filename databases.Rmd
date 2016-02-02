@@ -29,9 +29,9 @@ Lorsque les données peuvent être chargées intégralement en mémoire, il n'y 
 
 ## Le SQL
 
-Le SQL (strutured query language) est le langage utilisé pour communiquer avec une base de données (relationnelle, SGBDR). Ce langage est ancien (1974) et est censé être normalisé... sauf qu'il ne l'est pas vraiment. Chaque système de BDD (MySQL, SQLite, PostgreSQL) implémente une partie du langage SQL, et certains implémentent des fonctions qui ne font pas partie du langage. Donc le choix de la BDD utilisée n'estg pas neutre.
+Le SQL (structured query language) est le langage utilisé pour communiquer avec une base de données (relationnelle, SGBDR). Ce langage est ancien (1974) et est censé être normalisé... sauf qu'il ne l'est pas vraiment. Chaque système de BDD (MySQL, SQLite, PostgreSQL) implémente une partie du langage SQL, et certains implémentent des fonctions qui ne font pas partie du langage. Donc le choix de la BDD utilisée n'est pas neutre.
 
-De plus, recourir au SQL signifie qu'il faut maîtrise ce langage... qui n'est pas particulièrement simple ni moderne. Et puis, on n'est pas là pour apprendre des langages supplémentaires ! 
+De plus, recourir au SQL signifie qu'il faut maîtriser ce langage... qui n'est pas particulièrement simple ni moderne. Et puis, on n'est pas là pour apprendre des langages supplémentaires ! 
 
 ## Enters `dplyr`
 
@@ -130,7 +130,7 @@ J'ai écrit un petit package qui permet de charger directement un fichier détai
 
 ```{r, eval=FALSE}
 # library(devtools)
-# install.packages(c("MonetDB.R", "MonetDBLite"), repos=c("http://dev.monetdb.org/Assets/R/", "http://cran.rstudio.com/"))install_github("joelgombin/Insee2MonetDB")
+# install.packages(c("MonetDB.R", "MonetDBLite"), repos=c("http://dev.monetdb.org/Assets/R/", "http://cran.rstudio.com/"))
 # install_github("joelgombin/Insee2MonetDB")
 
 library(Insee2MonetDB)

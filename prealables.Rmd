@@ -184,7 +184,7 @@ eur14ParisBV %>%
   mutate(taille = ifelse(Inscrits > 1500, 
                          "Gros",
                          "Petit")
-  ) %>%
+         ) %>%
   select(taille) %>%
   table()
 
@@ -214,9 +214,6 @@ library(tidyr)
 
 ## testons avant de modifier le dataset...
 
-eur14ParisBV %>% 
-  spread(Liste, Voix) %>%
-  head()
 
 ## on vérifie que le nombre de lignes est correct
 
@@ -232,7 +229,7 @@ eur14ParisBV <- eur14ParisBV %>%
 ## On peut maintenant calculer les scores en % des inscrits :
 
 eur14ParisBVins <- eur14ParisBV %>%
-  mutate_each(funs(. / Inscrits * 100), ARTHAUD:VOLGANLI)
+  mutate_each(funs(. / Inscrits * 100), Abstention:VOLGANLI, Blancs, Nuls, Procurations)
 
 eur14ParisBVins %>%
   glimpse()
@@ -240,7 +237,7 @@ eur14ParisBVins %>%
 ## ou en % des exprimés !
 
 eur14ParisBVexp <- eur14ParisBV %>%
-  mutate_each(funs(. / Exprimés * 100), ARTHAUD:VOLGANLI)
+  mutate_each(funs(. / Exprimés * 100), Abstention:VOLGANLI, Blancs, Nuls, Procurations)
 
 eur14ParisBVexp %>%
   glimpse()
@@ -248,8 +245,8 @@ eur14ParisBVexp %>%
 ## mettre tout dans le même dataframe est (pour l'instant) un peu tricky :
 
 eur14ParisBVTout <- eur14ParisBV
-eur14ParisBVTout[,paste0(names(eur14ParisBVins)[11:41], ".ins")] <- eur14ParisBVins[,11:41]
-eur14ParisBVTout[,paste0(names(eur14ParisBVexp)[11:41], ".exp")] <- eur14ParisBVexp[,11:41]
+eur14ParisBVTout[,paste0(names(eur14ParisBVins)[8:41], ".ins")] <- eur14ParisBVins[,8:41]
+eur14ParisBVTout[,paste0(names(eur14ParisBVexp)[8:41], ".exp")] <- eur14ParisBVexp[,8:41]
 
 head(eur14ParisBVTout)
 

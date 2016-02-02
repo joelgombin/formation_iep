@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Joël Gombin" />
+
+
+<title>Introduction à la cartographie - avec R</title>
+
+<script src="cartographie2_files/jquery-1.11.0/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="cartographie2_files/bootstrap-3.3.1/css/journal.min.css" rel="stylesheet" />
+<script src="cartographie2_files/bootstrap-3.3.1/js/bootstrap.min.js"></script>
+<script src="cartographie2_files/bootstrap-3.3.1/shim/html5shiv.min.js"></script>
+<script src="cartographie2_files/bootstrap-3.3.1/shim/respond.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="cartographie2_files/highlight/default.css"
+      type="text/css" />
+<script src="cartographie2_files/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img { 
+  max-width:100%; 
+  height: auto; 
+}
+</style>
+<div class="container-fluid main-container">
+
+
+<div id="header">
+<h1 class="title">Introduction à la cartographie - avec R</h1>
+<h4 class="author"><em>Joël Gombin</em></h4>
+<h4 class="date"><em>2/2/2016</em></h4>
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#rappels-sur-lutilisation-de-r-pour-le-data-management">Rappels sur l’utilisation de R pour le <em>data management</em></a></li>
+<li><a href="#gestion-des-objets-spatiaux-dans-r">Gestion des objets spatiaux dans R</a><ul>
+<li><a href="#un-objet-spatial-cest-quoi">Un objet spatial, c’est quoi ?</a></li>
+<li><a href="#formats-spatiaux">Formats spatiaux</a></li>
+<li><a href="#et-dans-r">Et dans R ?</a></li>
+</ul></li>
+<li><a href="#cartographie-statique-i.e.print-avec-r">Cartographie statique (i.e. print) avec R</a><ul>
+<li><a href="#deux-modes-graphiques-dans-r">Deux modes graphiques dans R</a></li>
+<li><a href="#cartographier-en-base-le-cas-dune-carte-choroplethe">Cartographier en base : le cas d’une carte choroplèthe</a></li>
+<li><a href="#des-packages-de-plus-haut-niveau">Des packages de plus haut niveau</a></li>
+<li><a href="#lapproche-avec-ggplot2">L’approche avec <code>ggplot2</code></a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="rappels-sur-lutilisation-de-r-pour-le-data-management" class="section level1">
+<h1>Rappels sur l’utilisation de R pour le <em>data management</em></h1>
+</div>
+<div id="gestion-des-objets-spatiaux-dans-r" class="section level1">
+<h1>Gestion des objets spatiaux dans R</h1>
+<div id="un-objet-spatial-cest-quoi" class="section level2">
+<h2>Un objet spatial, c’est quoi ?</h2>
+<ul>
+<li>une collection de géométries (points, lignes, polygones), regroupées en couches (layers)</li>
+<li>une table attributaire (des données)</li>
+<li>un identifiant unique pour faire le lien entre les deux !</li>
+<li>si les choses sont bien faites, une projection.</li>
+</ul>
+</div>
+<div id="formats-spatiaux" class="section level2">
+<h2>Formats spatiaux</h2>
+<ul>
+<li>le plus répandu, la référence : le shapefile (format défini par ESRI). Pose pas mal de problèmes : plusieurs fichiers (.shp, .dbf., .prj, .shx, etc.) ; nom des variables limité à 10 caractères ; pas de valeurs manquantes ; pas plus de 255 variables ; pas de fichiers de plus de 2GB ; format propriétaire…</li>
+<li>le format promu par Google : le <a href="https://developers.google.com/kml/">KML</a></li>
+<li>le nouveau standard de facto en ligne : <a href="http://geojson.org/">GeoJSON</a></li>
+<li>une version améliorée et topologique du GeoJSON : le <a href="https://github.com/mbostock/topojson">topoJSON</a></li>
+<li>etc. etc.</li>
+</ul>
+<p>Il existe des outils libres pour passer d’un format à l’autre, en particulier <a href="http://www.gdal.org/">OGR/GDAL</a>. R possède des <a href="https://cran.r-project.org/web/packages/rgdal/index.html">surcouches de ces librairies</a>.</p>
+</div>
+<div id="et-dans-r" class="section level2">
+<h2>Et dans R ?</h2>
+<p>Plusieurs classes dans R pour représenter les objets spatiaux. La plus importante (et la seule qu’on utilisera) provient de la librairie <code>sp</code> et est <code>SpatialPolygonsDataFrame</code> (il existe aussi <code>SpatialPoints*</code> et <code>SpatialLines*</code>).</p>
+<p>On peut créer un objet <code>SpatialPolygonsDataFrame</code> à la main, mais en réalité on ne le fait jamais, on importe un shapefile (ou autre) dans R. Plusieurs fonctions pour cela ; la meilleure est <code>readOGR</code>, dans le package <code>rgdal</code>.</p>
+<pre class="r"><code>#install.packages(&quot;sp&quot;)
+#install.packages(&quot;rgdal&quot;)
+
+library(sp)
+library(rgdal)
+
+departements &lt;- readOGR(&quot;./data/departements&quot;, &quot;DEPARTEMENT&quot;, stringsAsFactors = FALSE)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;./data/departements&quot;, layer: &quot;DEPARTEMENT&quot;
+## with 96 features
+## It has 11 fields</code></pre>
+<pre class="r"><code>summary(departements)</code></pre>
+<pre><code>## Object of class SpatialPolygonsDataFrame
+## Coordinates:
+##       min     max
+## x   99226 1242375
+## y 6049647 7110480
+## Is projected: TRUE 
+## proj4string :
+## [+proj=lcc +lat_1=44 +lat_2=49 +lat_0=46.5 +lon_0=3 +x_0=700000
+## +y_0=6600000 +ellps=GRS80 +units=m +no_defs]
+## Data attributes:
+##    ID_GEOFLA      CODE_DEPT           NOM_DEPT           CODE_CHF        
+##  Min.   : 1.00   Length:96          Length:96          Length:96         
+##  1st Qu.:24.75   Class :character   Class :character   Class :character  
+##  Median :48.50   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   :48.50                                                           
+##  3rd Qu.:72.25                                                           
+##  Max.   :96.00                                                           
+##    NOM_CHF            X_CHF_LIEU      Y_CHF_LIEU      X_CENTROID   
+##  Length:96          Min.   : 1713   Min.   :61089   Min.   : 1770  
+##  Class :character   1st Qu.: 5531   1st Qu.:64012   1st Qu.: 5451  
+##  Mode  :character   Median : 6584   Median :66318   Median : 6608  
+##                     Mean   : 6840   Mean   :66099   Mean   : 6844  
+##                     3rd Qu.: 8461   3rd Qu.:68204   3rd Qu.: 8416  
+##                     Max.   :12285   Max.   :70594   Max.   :12112  
+##    Y_CENTROID      CODE_REG          NOM_REGION       
+##  Min.   :61036   Length:96          Length:96         
+##  1st Qu.:64011   Class :character   Class :character  
+##  Median :66303   Mode  :character   Mode  :character  
+##  Mean   :66118                                        
+##  3rd Qu.:68266                                        
+##  Max.   :70442</code></pre>
+<p>Les objets <code>SpatialPolygonsDataFrame</code> sont complexes, mais comprennent pour simplifier d’une part les polygones (auxquels on accède directement : <code>departements[1,]</code>) et d’autre part le <code>dataframe</code>, qui est un <code>slot</code> de l’objet :</p>
+<pre class="r"><code>summary(departements@data)</code></pre>
+<pre><code>##    ID_GEOFLA      CODE_DEPT           NOM_DEPT           CODE_CHF        
+##  Min.   : 1.00   Length:96          Length:96          Length:96         
+##  1st Qu.:24.75   Class :character   Class :character   Class :character  
+##  Median :48.50   Mode  :character   Mode  :character   Mode  :character  
+##  Mean   :48.50                                                           
+##  3rd Qu.:72.25                                                           
+##  Max.   :96.00                                                           
+##    NOM_CHF            X_CHF_LIEU      Y_CHF_LIEU      X_CENTROID   
+##  Length:96          Min.   : 1713   Min.   :61089   Min.   : 1770  
+##  Class :character   1st Qu.: 5531   1st Qu.:64012   1st Qu.: 5451  
+##  Mode  :character   Median : 6584   Median :66318   Median : 6608  
+##                     Mean   : 6840   Mean   :66099   Mean   : 6844  
+##                     3rd Qu.: 8461   3rd Qu.:68204   3rd Qu.: 8416  
+##                     Max.   :12285   Max.   :70594   Max.   :12112  
+##    Y_CENTROID      CODE_REG          NOM_REGION       
+##  Min.   :61036   Length:96          Length:96         
+##  1st Qu.:64011   Class :character   Class :character  
+##  Median :66303   Mode  :character   Mode  :character  
+##  Mean   :66118                                        
+##  3rd Qu.:68266                                        
+##  Max.   :70442</code></pre>
+<pre class="r"><code>library(dplyr)
+departements@data %&gt;%
+  filter(NOM_REGION %in% &quot;ILE-DE-FRANCE&quot;)</code></pre>
+<pre><code>##   ID_GEOFLA CODE_DEPT          NOM_DEPT CODE_CHF                  NOM_CHF
+## 1        76        75             PARIS      101 PARIS-1ER-ARRONDISSEMENT
+## 2        78        77    SEINE-ET-MARNE      288                    MELUN
+## 3        79        78          YVELINES      646               VERSAILLES
+## 4        92        91           ESSONNE      228                     EVRY
+## 5        93        92    HAUTS-DE-SEINE      050                 NANTERRE
+## 6        94        93 SEINE-SAINT-DENIS      008                  BOBIGNY
+## 7        95        94      VAL-DE-MARNE      028                  CRETEIL
+## 8        96        95        VAL-D&#39;OISE      500                 PONTOISE
+##   X_CHF_LIEU Y_CHF_LIEU X_CENTROID Y_CENTROID CODE_REG    NOM_REGION
+## 1       6516      68624       6517      68620       11 ILE-DE-FRANCE
+## 2       6748      68266       6950      68362       11 ILE-DE-FRANCE
+## 3       6364      68564       6149      68578       11 ILE-DE-FRANCE
+## 4       6579      68361       6441      68249       11 ILE-DE-FRANCE
+## 5       6416      68659       6458      68556       11 ILE-DE-FRANCE
+## 6       6588      68679       6617      68687       11 ILE-DE-FRANCE
+## 7       6598      68532       6609      68531       11 ILE-DE-FRANCE
+## 8       6342      68838       6365      68873       11 ILE-DE-FRANCE</code></pre>
+<p>On peut ainsi sélectionner une partie seulement d’un <code>SpatialPolygonsDataFrame</code>, en fonction de données de la table attributaire. Malheureusement, on ne peut (pour l’instant ?) utiliser la syntaxe de <code>dplyr</code>, mais on peut en revanche utiliser la fonction <code>subset</code>, avec une syntaxe proche (sauf qu’on sélectionne les lignes et, le cas échéant, les colonnes de la table attributaire dans la fonction <code>subset</code>).</p>
+<pre class="r"><code>iledefrance &lt;- departements %&gt;% 
+  subset(NOM_REGION %in% &quot;ILE-DE-FRANCE&quot;)</code></pre>
+<p>On peut aisément visualiser les objets spatiaux au moyen de la fonction <code>plot</code> :</p>
+<pre class="r"><code>plot(departements)</code></pre>
+<p><img src="cartographie2_files/figure-html/unnamed-chunk-4-1.png" alt="" /></p>
+<pre class="r"><code>## ou :
+## departements %&gt;% plot()</code></pre>
+</div>
+</div>
+<div id="cartographie-statique-i.e.print-avec-r" class="section level1">
+<h1>Cartographie statique (i.e. print) avec R</h1>
+<div id="deux-modes-graphiques-dans-r" class="section level2">
+<h2>Deux modes graphiques dans R</h2>
+<p>R connaît plusieurs manières de produire des graphiques. Parmi les trois plus importantes :</p>
+<ul>
+<li>les fonctions de base du logiciel. De bas niveau, donc on peut configurer de manière très fine. Mais le code peut être très verbeux, long et relativement complexe car la syntaxe n’est pas très homogène.</li>
+<li><code>lattice</code> : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujorud’hui.</li>
+<li><code>ggplot2</code> : un système graphique qui a fait la renommée de R. Développé par <a href="https://github.com/hadley">Hadley Wickham</a>, s’appuie sur la <a href="https://books.google.fr/books/about/The_Grammar_of_Graphics.html?id=_kRX4LoFfGQC&amp;redir_esc=y"><code>grammar of graphics</code> de Leland Wilkinson</a>. Très puissant, très stable, se déploie aujourd’hui en version plus orientée web avec <a href="http://ggvis.rstudio.com/"><code>ggvis</code></a>.</li>
+</ul>
+<p>On peut faire de la cartographie dans ces trois frameworks. On n’examinera pas <code>lattice</code>, qui n’est guère dynamique et pas très bon en cartographie. Restent donc deux approches : en base et en <code>ggplot2</code>.</p>
+</div>
+<div id="cartographier-en-base-le-cas-dune-carte-choroplethe" class="section level2">
+<h2>Cartographier en base : le cas d’une carte choroplèthe</h2>
+<p>En utilisant les commandes graphiques de base, on peut faire une carte choroplèthe “à la main”, en suivant chaque étape.</p>
+<div id="rapprocher-le-fonds-de-carte-et-les-donnees" class="section level3">
+<h3>Rapprocher le fonds de carte et les données</h3>
+<p>On commence par charger le jeu de données (ici, les résultats de l’élection présidentielle de 2012 par département).</p>
+<pre class="r"><code>load(&quot;./data/Pres2012dpts.Rdata&quot;)</code></pre>
+<p>On vérifie qu’on a bien les mêmes identifiants uniques dans le jeu de données et le fonds de carte :</p>
+<pre class="r"><code>head(dpts$CodeDpt)</code></pre>
+<pre><code>## [1] &quot;01&quot; &quot;02&quot; &quot;03&quot; &quot;04&quot; &quot;05&quot; &quot;06&quot;</code></pre>
+<pre class="r"><code>head(departements@data$CODE_DEPT)</code></pre>
+<pre><code>## [1] &quot;01&quot; &quot;02&quot; &quot;03&quot; &quot;04&quot; &quot;05&quot; &quot;06&quot;</code></pre>
+<p>Il reste à fusionner la table attributaire du <code>SpatialPolygonsDataFrame</code> et le jeu de données importé, en utilisant la fonction <code>match</code> (attention : <code>merge</code> peut changer l’ordre des lignes, et les fonctions <code>join</code> de <code>dplyr</code> suppriment les <code>row.names</code> - à éviter, donc !) :</p>
+<pre class="r"><code>departements@data &lt;- cbind(
+                        departements@data, 
+                        dpts %&gt;% arrange(match(departements$CODE_DEPT, dpts$CodeDpt))
+                        )</code></pre>
+</div>
+<div id="discretiser" class="section level3">
+<h3>Discrétiser</h3>
+<p>Pour faire une carte choroplèthe, il faut discrétiser une variable continue. Il existe de nombreuses manières de discrétiser une variable continue (voir la séance précédente). Le package <code>classInt</code> permet de le faire aisément.</p>
+<pre class="r"><code>library(classInt)
+bornes &lt;- classIntervals(departements@data$LePen.ins, n = 6, style = &quot;quantile&quot;)$brks</code></pre>
+<p>Il faut ensuite associer une échelle de couleurs à cette discrétisation. Le package <code>RColorBrewer</code> (associé au site <a href="http://colorbrewer2.org/">ColorBrewer</a>) est utile pour cela.</p>
+<pre class="r"><code>library(RColorBrewer)
+couleurs &lt;- brewer.pal(6, &quot;Blues&quot;)
+couleur &lt;- couleurs[findInterval(departements@data$LePen.ins, bornes, all.inside = TRUE)]</code></pre>
+</div>
+<div id="representer-la-carte" class="section level3">
+<h3>Représenter la carte</h3>
+<p>Il ne reste alors plus qu’à représenter la carte :</p>
+<pre class="r"><code>plot(departements, col = couleur)</code></pre>
+<p><img src="cartographie2_files/figure-html/unnamed-chunk-10-1.png" alt="" /></p>
+<p>On peut utiliser certaines options graphiques :</p>
+<pre class="r"><code>plot(departements, col = couleur, border = &quot;grey&quot;, lwd = 0.5)</code></pre>
+<p><img src="cartographie2_files/figure-html/unnamed-chunk-11-1.png" alt="" /></p>
+<p>Il ne reste plus qu’à ajouter les finitions : légende, titre, crédits, flèche nord…</p>
+<pre class="r"><code>library(maptools)
+# legende
+# On utilise locator() pour décider manuellement du positionnement de la légende
+legend(x = locator(), legend = leglabs(round(bornes, 2), over = &quot;plus de&quot;, under = &quot;moins de&quot;), 
+    fill = couleurs, bty = &quot;n&quot;, pt.cex = 1, cex = 0.7, title = &quot;En % des inscrits&quot;)
+# Titre
+title(main = &quot;Vote pour Marine Le Pen, élection présidentielle de 2012&quot;, sub = &quot;Auteur: Sciences Po crew, 2016&quot;, 
+    cex.sub = 0.7)
+# échelle
+x1 &lt;- bbox(departements)[1]
+y1 &lt;- bbox(departements)[2]
+x2 &lt;- bbox(departements)[3]
+y2 &lt;- bbox(departements)[4]
+xscale &lt;- x1
+yscale &lt;- y1
+sizescale &lt;- 100000
+labelscale &lt;- &quot;100km&quot;
+SpatialPolygonsRescale(layout.scale.bar(), offset = c(xscale, yscale), scale = sizescale, 
+    fill = c(&quot;black&quot;), plot.grid = F)
+text(xscale + sizescale/2, yscale, paste(labelscale, &quot;\n\n&quot;, sep = &quot;&quot;), cex = 0.7)
+# fleche nord
+xarrow &lt;- x1
+yarrow &lt;- y2 - (y2 - y1)/10
+SpatialPolygonsRescale(layout.north.arrow(type = 2), offset = c(xarrow, yarrow), scale = 50000, 
+    plot.grid = F)</code></pre>
+<p><img src="cartographie2_files/figure-html/unnamed-chunk-13-1.png" alt="" /></p>
+</div>
+</div>
+<div id="des-packages-de-plus-haut-niveau" class="section level2">
+<h2>Des packages de plus haut niveau</h2>
+<p>Bon, comme on voit, c’est assez laborieux… C’est pourquoi, plusieurs packages existent pour pouvoir utiliser les graphiques de base tout en recourant à des fonctions de plus haut niveau. L’un d’entre eux, français, est <code>rCarto</code> :</p>
+<pre class="r"><code># install.packages(rCarto)
+library(rCarto)
+mapChoropleth(shpFile = &quot;./data/departements/DEPARTEMENT.SHP&quot;, 
+              shpId = &quot;CODE_DEPT&quot;,
+              df = dpts,
+              dfId = &quot;CodeDpt&quot;,
+              var = &quot;LePen.ins&quot;,
+              nclass = 6,
+              style = &quot;quantile&quot;,
+              posLeg = &quot;bottomleft&quot;,
+              palCol = &quot;Blues&quot;,
+              title = &quot;Vote pour Le Pen, élection présidentielle de 2012&quot;,
+              legend = &quot;en % des inscrits&quot;,
+              author = &quot;Sciences Po crew&quot;,
+              sources = &quot;Ministère de l&#39;intérieur&quot;,
+              scalebar = TRUE,
+              scalebarSize = 100000,
+              scalebarText = &quot;100 km&quot;,
+              northArrow = TRUE,
+              northArrowSize = 50000,
+              width = 10,
+              height = 8)</code></pre>
+<p><img src="cartographie2_files/figure-html/unnamed-chunk-15-1.png" alt="" /></p>
+<p>Le <em>new kid on the block</em> est le package <a href="https://cran.r-project.org/web/packages/tmap/vignettes/tmap-nutshell.html"><code>tmap</code></a>.</p>
+<pre class="r"><code># devtools::instal_github(&quot;mtennekes/tmap/pkg&quot;)
+library(tmap)
+shp_dpts &lt;- append_data(departements, dpts, key.shp = &quot;CODE_DEPT&quot;, key.data = &quot;CodeDpt&quot;)</code></pre>
+<pre><code>## Keys match perfectly.</code></pre>
+<pre class="r"><code>tm_shape(shp_dpts) +
+  tm_fill(col = &quot;LePen.ins&quot;, palette = &quot;Blues&quot;, style = &quot;quantile&quot;, n = 6, title = &quot;M. Le Pen&quot;, legend.format = list(text.separator = &quot;à&quot;)) +
+  tm_borders(col = &quot;grey&quot;) +
+  tm_compass(position = c(&quot;center&quot;, &quot;bottom&quot;))</code></pre>
+<p><img src="cartographie2_files/figure-html/tmap-1.png" alt="" /></p>
+<p>Permet de faire des choses très avancées :</p>
+<p><img src="images/dotmaps.png" alt="" /></p>
+</div>
+<div id="lapproche-avec-ggplot2" class="section level2">
+<h2>L’approche avec <code>ggplot2</code></h2>
+<p>L’apprentissage de <code>ggplot2</code>nécessiterait un cours en tant que tel. Il présente certains avantages pour la cartographie, notamment dans le cadre de travaux scientifiques (petits multiples faciles à réaliser), mais aussi certains inconvénients (lent, peu ou pas de possibilité d’utiliser des fonctions de bas niveau).</p>
+<p>Une étape nécessaire dans le workflow de <code>ggplot2</code> est de transformer un objet <code>SpatialPolygonsDataFrame</code> en simple <code>dataframe</code>, au moyen de la fonction <code>fortify</code> :</p>
+<pre class="r"><code>#install.packages(&quot;mapproj&quot;)
+#install.packages(&quot;ggthemes&quot;)
+library(ggplot2)
+library(ggthemes)
+
+ftfDepartements &lt;- fortify(departements, region = &quot;CODE_DEPT&quot;)
+
+# on merge ensuite la variable à représenter :
+
+ftfDepartements$LePen.ins &lt;- dpts[match(ftfDepartements$id, dpts$CodeDpt), &quot;LePen.ins&quot;]
+
+ftfDepartements %&gt;%
+  ggplot(aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = LePen.ins)) +
+  coord_equal() +
+  xlab(&quot;&quot;) +
+  ylab(&quot;&quot;) +
+  theme_map()</code></pre>
+<p><img src="cartographie2_files/figure-html/unnamed-chunk-16-1.png" alt="" /></p>
+</div>
+</div>
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

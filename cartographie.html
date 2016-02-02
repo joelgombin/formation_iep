@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Joël Gombin" />
+
+
+<title>Introduction à la cartographie - 1</title>
+
+<script src="cartographie_files/jquery-1.11.0/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="cartographie_files/bootstrap-3.3.1/css/journal.min.css" rel="stylesheet" />
+<script src="cartographie_files/bootstrap-3.3.1/js/bootstrap.min.js"></script>
+<script src="cartographie_files/bootstrap-3.3.1/shim/html5shiv.min.js"></script>
+<script src="cartographie_files/bootstrap-3.3.1/shim/respond.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="cartographie_files/highlight/default.css"
+      type="text/css" />
+<script src="cartographie_files/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img { 
+  max-width:100%; 
+  height: auto; 
+}
+</style>
+<div class="container-fluid main-container">
+
+
+<div id="header">
+<h1 class="title">Introduction à la cartographie - 1</h1>
+<h4 class="author"><em>Joël Gombin</em></h4>
+<h4 class="date"><em>2/2/2016</em></h4>
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#elements-de-cartographie">Éléments de cartographie</a><ul>
+<li><a href="#quest-ce-quune-carte">Qu’est-ce qu’une carte ?</a></li>
+<li><a href="#la-notion-de-projection">La notion de projection</a></li>
+<li><a href="#lechelle">L’échelle</a></li>
+<li><a href="#la-generalisation">La généralisation</a></li>
+<li><a href="#la-selection">La sélection</a></li>
+<li><a href="#la-schematisation">La schématisation</a></li>
+<li><a href="#le-fond-de-carte">Le fond de carte</a></li>
+<li><a href="#les-sources-de-fonds-de-carte">Les sources de fonds de carte</a></li>
+<li><a href="#vecteur-ou-raster">Vecteur ou raster</a></li>
+<li><a href="#cartes-choroplethes">Cartes choroplèthes</a></li>
+<li><a href="#cartes-en-anamorphose-ou-cartogramme">Cartes en anamorphose ou cartogramme</a></li>
+<li><a href="#le-langage-cartographique">Le langage cartographique</a></li>
+<li><a href="#les-composantes-du-langage-cartographique">Les composantes du langage cartographique</a></li>
+<li><a href="#les-variables-visuelles">Les variables visuelles</a></li>
+<li><a href="#la-forme">La forme</a></li>
+<li><a href="#la-taille">La taille</a></li>
+<li><a href="#la-taille-1">La taille</a></li>
+<li><a href="#la-couleur">La couleur</a></li>
+<li><a href="#la-couleur-1">La couleur</a></li>
+<li><a href="#la-couleur-2">La couleur</a></li>
+<li><a href="#la-couleur-3">La couleur</a></li>
+<li><a href="#la-couleur-4">La couleur</a></li>
+<li><a href="#la-couleur-5">La couleur</a></li>
+<li><a href="#la-valeur">La valeur</a></li>
+<li><a href="#le-grain">Le grain</a></li>
+<li><a href="#lorientation">L’orientation</a></li>
+<li><a href="#distribution-et-decoupage-en-classes-des-variables-quantitatives">Distribution et découpage en classes des variables quantitatives</a></li>
+<li><a href="#distribution-et-decoupage-en-classes-des-variables-quantitatives-1">Distribution et découpage en classes des variables quantitatives</a></li>
+<li><a href="#et-concretement-on-fait-comment">Et concrètement, on fait comment ?</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="elements-de-cartographie" class="section level1">
+<h1>Éléments de cartographie</h1>
+<div id="quest-ce-quune-carte" class="section level2">
+<h2>Qu’est-ce qu’une carte ?</h2>
+<p>“Une carte est une représentation géométrique plane simplifiée et conventionnelle de tout ou partie de la surface terrestre, et cela dans un rapport de similitude convenable qu’on appelle échelle.” (F. Joly, 1976)</p>
+<p>Référence : <a href="http://www.persee.fr/web/revues/home/prescript/article/espos_0755-7809_1998_num_16_1_1827_t1_0119_0000_2">Béguin et Pumain, 2014 (3e éd.)</a></p>
+</div>
+<div id="la-notion-de-projection" class="section level2">
+<h2>La notion de projection</h2>
+<p>La projection est l’outil mathématique qui permet de passer du géoïde représentant la Terre à une représentation plane.</p>
+<p>Projections conformes (Mercator, Lambert) ou équivalentes (Eckert IV, Gall). Il y a toujours une déformation !</p>
+<p>Les coordonnées géographiques sont exprimées en longitude et latitude. Les unités peuvent être des degrés ou des grades. La projection transforme les coordonnées géographiques en coordonnées x/y.</p>
+<p>Exemple de coordonnées géographiques :</p>
+<p><img src='images/gmaps.png' align='center'/></p>
+<p>Un <a href="http://bl.ocks.org/mbostock/raw/3711652">truc cool pour jouer avec les différentes projections</a>.</p>
+<p><em>The West Wing</em>, la série qui arrive à faire un sketch drôle sur les projections géographiques :</p>
+<iframe width="560" height="315" src="http://www.youtube.com/embed/vVX-PrBRtTY" frameborder="0" allowfullscreen>
+</iframe>
+</div>
+<div id="lechelle" class="section level2">
+<h2>L’échelle</h2>
+<p>L’échelle d’une carte représente le rapport d’une distance mesurée sur la carte à sa valeur réelle sur le terrain.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Échelle</th>
+<th align="left">1 cm représente</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1/10000</td>
+<td align="left">100 m</td>
+</tr>
+<tr class="even">
+<td align="left">1/25000</td>
+<td align="left">250m</td>
+</tr>
+<tr class="odd">
+<td align="left">1/50000</td>
+<td align="left">500m</td>
+</tr>
+<tr class="even">
+<td align="left">1/100000</td>
+<td align="left">1km</td>
+</tr>
+<tr class="odd">
+<td align="left">1/1000000</td>
+<td align="left">10km</td>
+</tr>
+</tbody>
+</table>
+<p>Attention : “petite échelle” = grande superficie représentée “grande échelle” = petite superficie représentée</p>
+<p>L’échelle est déformée à distance du centre de projection (équateur pour Mercator)</p>
+<p>Échelle numérique et échelle graphique :</p>
+<p><img src="images/carteParis1.png" alt="" /></p>
+</div>
+<div id="la-generalisation" class="section level2">
+<h2>La généralisation</h2>
+<p>“L’opération qui par sélection, schématisation et harmonisation reconstitue sur une carte la réalité de la surface représentée dans ses traits essentiels en fonction du but de la carte, de son thème, de son échelle et des particularités de la région cartographiée.”</p>
+</div>
+<div id="la-selection" class="section level2">
+<h2>La sélection</h2>
+<p>Quelles couches d’information représenter ? Ni trop (surcharge d’information, à la Google Maps) ni trop peu (rendre la carte intelligible au lecteur).</p>
+<p>Le <a href="http://maps.stamen.com/toner/#12/37.7706/-122.3782">style “toner”</a> peut être utile pour trouver cet équilibre, en cartographie thématique :</p>
+<p><img src="images/carteParis1.png" alt="" /></p>
+</div>
+<div id="la-schematisation" class="section level2">
+<h2>La schématisation</h2>
+<p>Opération de simplification, qui peut être structurale (tracés) ou conceptuelle (schéma).</p>
+<p>Attention : on peut simplifier à partir de données détaillées, mais on ne peut pas faire l’inverse ! Donc toujours veiller à conserver les données dans leur forme la plus détaillée.</p>
+</div>
+<div id="le-fond-de-carte" class="section level2">
+<h2>Le fond de carte</h2>
+<p>Le fond de carte est constitué des éléments repris d’une carte topographique (par exemple de l’IGN) et utilisés pour une carte thématique.</p>
+<p>“Carte reproduite totalement ou partiellement, en une ou plusieurs couleurs souvent atténuées, servant de repère pour le report en surcharge de phénomènes localisables déterminés” (CFC). Peut concerner les découpages administratifs, le réseau routier, hydrographique, les courbes de niveau, etc.</p>
+</div>
+<div id="les-sources-de-fonds-de-carte" class="section level2">
+<h2>Les sources de fonds de carte</h2>
+<p>Traditionnellement, en France : l’IGN.</p>
+<p>De plus en plus : Google Maps, Open Street Map, Stamen…</p>
+<p>Avec des fonds de carte sympas, en style toner :</p>
+<iframe src="http://maps.stamen.com/toner/#12/48.8974/2.2017" width="1000" height="800">
+</iframe>
+<p>ou encore aquarelle :</p>
+<iframe src="http://maps.stamen.com/watercolor/#12/48.8974/2.2017" width="1000" height="800">
+</iframe>
+</div>
+<div id="vecteur-ou-raster" class="section level2">
+<h2>Vecteur ou raster</h2>
+<p>Comment stocker et représenter l’information géographique ?</p>
+<ul>
+<li><p>“Mode raster” : il s’agit d’une image, découpée en pixels. Des valeurs sont attribués aux pixels. Ex : photo satellite.</p></li>
+<li><p>“Mode vecteur” : on utilise des objets géométriques (lignes, points, polygones…) auxquels sont associés des attributs. Ex : carte d’un réseau de transports.</p></li>
+</ul>
+<p>OpenStreetMap, par exemple, fournit des données en vectoriel :</p>
+<iframe width="1000" height="800" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://www.openstreetmap.org/export/embed.html?bbox=2.3314136266708374%2C48.866987337550164%2C2.33908474445343%2C48.87019135286425&amp;layer=transportmap" style="border: 1px solid black">
+</iframe>
+<p>Ces données vectorielles sont (plus ou moins facilement) requêtables : voir par exemple <a href="http://overpass-turbo.eu/s/e7X/" class="uri">http://overpass-turbo.eu/s/e7X/</a>. Il existe (évidemment !) <a href="https://github.com/hrbrmstr/overpass">un package R</a> pour ce faire.</p>
+<p>Un exemple de carte en raster :</p>
+<iframe src="http://www.comeetie.fr/galerie/francepixels/#" width="1000" height="800">
+</iframe>
+<p><br/><small><a href="http://www.comeetie.fr/galerie/francepixels/#">Voir la source</a></small></p>
+</div>
+<div id="cartes-choroplethes" class="section level2">
+<h2>Cartes choroplèthes</h2>
+<p>Une carte choroplèthe est une carte thématique où les régions sont colorées ou remplies d’un motif qui montre une mesure statistique, tels la densité de population ou le revenu par habitant. Ce type de carte facilite la comparaison d’une mesure statistique d’une région à l’autre ou montre la variabilité de celle-ci pour une région donnée.</p>
+</div>
+<div id="cartes-en-anamorphose-ou-cartogramme" class="section level2">
+<h2>Cartes en anamorphose ou cartogramme</h2>
+<p>“La cartographie en anamorphose a pour but d’adapter la forme de la carte non pas à la réalité physique mais plutôt à la réalité perçue.” <a href="http://cybergeo.revues.org/129">(Langlois et Denain, 1996)</a></p>
+<p>On déforme le fond de carte en fonction d’une variable quantitative (voire arbitrairement).</p>
+<iframe src="http://prag.ma/code/d3-cartogram/?segmentized#intlmig/2010" width="1000" height="800">
+</iframe>
+<p><br/><small><a href="http://prag.ma/code/d3-cartogram/?segmentized#intlmig/2010">Voir la source</a></small></p>
+<p>Un exemple de votre serviteur :</p>
+<p><a href='http://www.slate.fr/france/87669/cartes-europeennes-2014'><img width='1000' src='./images/carte2.png' align='center'/></a></p>
+</div>
+<div id="le-langage-cartographique" class="section level2">
+<h2>Le langage cartographique</h2>
+<p><a href="http://classiques.uqac.ca/collection_methodologie/bertin_jacques/representations_visuelles_info/representations_visuelles_info_texte.html">Bertin, 1965</a> : travail sur la sémiologie graphique. La carte, comme le graphique, permettent de percevoir <em>en même temps</em> trois informations (X,Y,Z).</p>
+<p>Mais pour que cette communication soit efficace, il faut respecter un langage précis et ses règles.</p>
+</div>
+<div id="les-composantes-du-langage-cartographique" class="section level2">
+<h2>Les composantes du langage cartographique</h2>
+<ul>
+<li>les signes graphiques élémentaires : point, trait, tâche (aplat).</li>
+<li>le figuré cartographique : combinaison de signes graphiques élémentaires.</li>
+<li>l’implantation graphique : manière d’appliquer le figuré sur la carte (ponctuelle, linéaire ou zonale).</li>
+<li>les variables visuelles : façon de faire varier les signes graphiques. Il y en a sept.</li>
+</ul>
+</div>
+<div id="les-variables-visuelles" class="section level2">
+<h2>Les variables visuelles</h2>
+<ul>
+<li>forme</li>
+<li>taille</li>
+<li>couleur</li>
+<li>valeur</li>
+<li>orientation</li>
+<li>texture-structure (trame)</li>
+<li>grain</li>
+</ul>
+</div>
+<div id="la-forme" class="section level2">
+<h2>La forme</h2>
+<ul>
+<li>Ne transcrit qu’une information qualitative.</li>
+<li>Veiller à ne pas utiliser trop de formes différentes, sinon cela devient illisible (&lt; 10)</li>
+<li>Utilisée dans les trois types d’implantation graphique. En implantation zonale =&gt; texture.</li>
+</ul>
+</div>
+<div id="la-taille" class="section level2">
+<h2>La taille</h2>
+<ul>
+<li>longueur/hauteur/surface/volume</li>
+<li>bonne perception visuelle par l’œil</li>
+<li>rapport de proportionnalité entre information quantitative représentée et la forme</li>
+<li>attention à respecter cette proportionnalité !</li>
+<li>la taille est plus facile à estimer que la surface ou le volume</li>
+</ul>
+<p>Un exemple d’utilisation incorrecte (non-proportionnelle) de la taille :</p>
+<p><img src="images/UneMonde.png" alt="" /></p>
+</div>
+<div id="la-taille-1" class="section level2">
+<h2>La taille</h2>
+<ul>
+<li>Le cartogramme (anamorphose) comme cas particulier de l’utilisation de la taille.</li>
+<li><a href="http://scapetoad.choros.ch/">Créer un fonds de carte en anamorphose</a></li>
+<li><a href="http://prag.ma/code/d3-cartogram/">Réaliser un cartogramme en javascript</a></li>
+</ul>
+</div>
+<div id="la-couleur" class="section level2">
+<h2>La couleur</h2>
+<ul>
+<li>fort pouvoir différentiel</li>
+<li>esthétique</li>
+<li>trois propriétés :
+<ul>
+<li>ton</li>
+<li>saturation</li>
+<li>intensité</li>
+</ul></li>
+</ul>
+</div>
+<div id="la-couleur-1" class="section level2">
+<h2>La couleur</h2>
+<iframe src="http://hslpicker.com/" width="800px" height="500px">
+</iframe>
+</div>
+<div id="la-couleur-2" class="section level2">
+<h2>La couleur</h2>
+<ul>
+<li>En général, on utilise un seul ton et on joue sur l’intensité.</li>
+</ul>
+<iframe src="http://www.joelgombin.fr/municipales2014/grenobleAbstention.html" width="700px" height="600px">
+</iframe>
+</div>
+<div id="la-couleur-3" class="section level2">
+<h2>La couleur</h2>
+<ul>
+<li>Parfois, par exemple pour représenter une variation, on peut jouer sur deux échelles de tons</li>
+</ul>
+<iframe src="http://www.joelgombin.fr/municipales2014/amiensProgFN.html" width="700px" height="600px">
+</iframe>
+</div>
+<div id="la-couleur-4" class="section level2">
+<h2>La couleur</h2>
+<ul>
+<li>Si on représente une variable qualitative, on utilise autant de tons que de catégories</li>
+</ul>
+<iframe src="http://joelgombin.fr/comm.couleur.html" width="1000px" height="700px">
+</iframe>
+</div>
+<div id="la-couleur-5" class="section level2">
+<h2>La couleur</h2>
+<ul>
+<li>Penser aux daltoniens !</li>
+<li>Penser au support (web, papier…)</li>
+<li>Des palettes de couleur de référence : <a href="http://colorbrewer2.org/">colorbrewer2.org</a> par exemple</li>
+<li>Un autre outil de construction de palette de couleur : <a href="https://vis4.net/labs/multihue/">vis4.net/labs/multihue</a></li>
+<li>C’est la variable qu’on utilise le plus en cartographie thématique.</li>
+</ul>
+</div>
+<div id="la-valeur" class="section level2">
+<h2>La valeur</h2>
+<ul>
+<li>Valeur : rapport entre quantités totales de noir et de blanc perçues dans une surface donnée (cf. aussi “gris typographique”).</li>
+<li>Peut passer par une trame</li>
+<li>Peut concerner une couleur (un ton)</li>
+<li>En général, on utilise des classes (max 6/7)</li>
+<li>Mais parfois, coloration continue</li>
+</ul>
+<p>Un exemple de coloration continue :</p>
+<p><img src="images/continue.jpg" alt="" /></p>
+<p>Des cartes <em>old school</em> de densité, qui utilisent une trame :</p>
+<p><img src='images/densite.jpg' width='100%'/></p>
+<p>Une autre coloration continue (pas très lisible parce qu’elle utilise trop de teintes [hues]) :</p>
+<p><img src='images/Purple-USA.jpg' width='100%'/></p>
+</div>
+<div id="le-grain" class="section level2">
+<h2>Le grain</h2>
+<ul>
+<li>agrandissement ou réduction d’une texture/structure</li>
+<li>pas très utilisé, car mal perçu par l’œil humain</li>
+</ul>
+</div>
+<div id="lorientation" class="section level2">
+<h2>L’orientation</h2>
+<ul>
+<li>Angle d’un figuré linéaire</li>
+<li>Pour variable qualitative, moins utilisé aujourd’hui</li>
+</ul>
+<p>Un exemple d’utilisation par Todd et Le Bras :</p>
+<p><img src='images/lebrastodd.jpg' width='80%'/></p>
+</div>
+<div id="distribution-et-decoupage-en-classes-des-variables-quantitatives" class="section level2">
+<h2>Distribution et découpage en classes des variables quantitatives</h2>
+<ul>
+<li>discrétisation : découper une variable continue en classes</li>
+<li>ce découpage n’est pas neutre, et ne peut être décidé indépendamment de la distribution de la variable représentée</li>
+</ul>
+</div>
+<div id="distribution-et-decoupage-en-classes-des-variables-quantitatives-1" class="section level2">
+<h2>Distribution et découpage en classes des variables quantitatives</h2>
+<p>Voir <a href="http://www.persee.fr/web/revues/home/prescript/article/espos_0755-7809_2000_num_18_1_1930">cet article</a></p>
+<p>Un moyen sympa de jouer avec les différentes méthodes de discrétisation :</p>
+<iframe src="http://franceo3.geoclip.fr/index.php?profil=FV#z=-349737,6562730,1033057,513716;l=fr;i=euro14.pt_lfn;v=map12" width="1000px" height="800px">
+</iframe>
+<p><br/><small><a href='http://franceo3.geoclip.fr/index.php?profil=FV#z=-349737,6562730,1033057,513716;l=fr;i=euro14.pt_lfn;v=map12'>Voir la source</a></small></p>
+</div>
+<div id="et-concretement-on-fait-comment" class="section level2">
+<h2>Et concrètement, on fait comment ?</h2>
+<p>De très nombreux outils existent. QGIS est en train de s’imposer comme le SIG de référence dans le monde du libre. Malheureusement, en cartographie pure, aucune solution de référence ne permet de traiter aisément tous les cas de figure (vectoriel/raster ; print/web, etc.). En ce qui concerne la carto web, pas vraiment de solution de référence pour l’heure.</p>
+<p>R n’est pas fait (du tout) au départ pour faire de la carto, mais offre aujourd’hui un <em>workflow</em> complet allant du nettoyage des données à leur représentation cartographique en passant par le nettoyage, l’analyse et la transformation des données.</p>
+</div>
+</div>
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -2,16 +2,18 @@
 title: "Introduction à la cartographie - avec R"
 author: "Joël Gombin"
 date: "2/2/2016"
-output: 
+output:
   html_document:
-    theme: journal
-    self_contained: false
-    keep_md: true
-    fig_width: 10
     fig_height: 7
-    toc: true
+    fig_width: 10
+    keep_md: yes
+    self_contained: no
+    theme: journal
+    toc: yes
     toc_depth: 2
-
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 # Rappels sur l'utilisation de R pour le *data management*
@@ -55,6 +57,7 @@ summary(departements)
 Les objets `SpatialPolygonsDataFrame` sont complexes, mais comprennent pour simplifier d'une part les polygones (auxquels on accède directement : `departements[1,]`) et d'autre part le `dataframe`, qui est un `slot` de l'objet :
 
 ```{r message=FALSE, warning=FALSE}
+
 summary(departements@data)
 library(dplyr)
 departements@data %>%
@@ -78,6 +81,10 @@ plot(departements)
 ## ou :
 ## departements %>% plot()
 
+library(mapview)
+
+mapview(departements)
+
 ```
 
 # Cartographie statique (i.e. print) avec R
@@ -87,7 +94,7 @@ plot(departements)
 R connaît plusieurs manières de produire des graphiques. Parmi les trois plus importantes :
 
 - les fonctions de base du logiciel. De bas niveau, donc on peut configurer de manière très fine. Mais le code peut être très verbeux, long et relativement complexe car la syntaxe n'est pas très homogène.
-- `lattice` : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujorud'hui.
+- `lattice` : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujourd'hui.
 - `ggplot2` : un système graphique qui a fait la renommée de R. Développé par [Hadley Wickham](https://github.com/hadley), s'appuie sur la [`grammar of graphics` de Leland Wilkinson](https://books.google.fr/books/about/The_Grammar_of_Graphics.html?id=_kRX4LoFfGQC&redir_esc=y). Très puissant, très stable, se déploie aujourd'hui en version plus orientée web avec [`ggvis`](http://ggvis.rstudio.com/). 
 
 On peut faire de la cartographie dans ces trois frameworks. On n'examinera pas `lattice`, qui n'est guère dynamique et pas très bon en cartographie. Restent donc deux approches : en base et en `ggplot2`. 

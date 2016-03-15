@@ -163,6 +163,10 @@ plot(departements)
 ```r
 ## ou :
 ## departements %>% plot()
+
+library(mapview)
+
+mapview(departements)
 ```
 
 # Cartographie statique (i.e. print) avec R
@@ -172,7 +176,7 @@ plot(departements)
 R connaît plusieurs manières de produire des graphiques. Parmi les trois plus importantes :
 
 - les fonctions de base du logiciel. De bas niveau, donc on peut configurer de manière très fine. Mais le code peut être très verbeux, long et relativement complexe car la syntaxe n'est pas très homogène.
-- `lattice` : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujorud'hui.
+- `lattice` : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujourd'hui.
 - `ggplot2` : un système graphique qui a fait la renommée de R. Développé par [Hadley Wickham](https://github.com/hadley), s'appuie sur la [`grammar of graphics` de Leland Wilkinson](https://books.google.fr/books/about/The_Grammar_of_Graphics.html?id=_kRX4LoFfGQC&redir_esc=y). Très puissant, très stable, se déploie aujourd'hui en version plus orientée web avec [`ggvis`](http://ggvis.rstudio.com/). 
 
 On peut faire de la cartographie dans ces trois frameworks. On n'examinera pas `lattice`, qui n'est guère dynamique et pas très bon en cartographie. Restent donc deux approches : en base et en `ggplot2`. 

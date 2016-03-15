@@ -208,7 +208,11 @@ departements@data %&gt;%
 <pre class="r"><code>plot(departements)</code></pre>
 <p><img src="cartographie2_files/figure-html/unnamed-chunk-4-1.png" alt="" /></p>
 <pre class="r"><code>## ou :
-## departements %&gt;% plot()</code></pre>
+## departements %&gt;% plot()
+
+library(mapview)
+
+mapview(departements)</code></pre>
 </div>
 </div>
 <div id="cartographie-statique-i.e.print-avec-r" class="section level1">
@@ -218,7 +222,7 @@ departements@data %&gt;%
 <p>R connaît plusieurs manières de produire des graphiques. Parmi les trois plus importantes :</p>
 <ul>
 <li>les fonctions de base du logiciel. De bas niveau, donc on peut configurer de manière très fine. Mais le code peut être très verbeux, long et relativement complexe car la syntaxe n’est pas très homogène.</li>
-<li><code>lattice</code> : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujorud’hui.</li>
+<li><code>lattice</code> : un système graphique appuyé sur une réflexion importante par William S. Cleveland, de haut niveau. Peu utilisé aujourd’hui.</li>
 <li><code>ggplot2</code> : un système graphique qui a fait la renommée de R. Développé par <a href="https://github.com/hadley">Hadley Wickham</a>, s’appuie sur la <a href="https://books.google.fr/books/about/The_Grammar_of_Graphics.html?id=_kRX4LoFfGQC&amp;redir_esc=y"><code>grammar of graphics</code> de Leland Wilkinson</a>. Très puissant, très stable, se déploie aujourd’hui en version plus orientée web avec <a href="http://ggvis.rstudio.com/"><code>ggvis</code></a>.</li>
 </ul>
 <p>On peut faire de la cartographie dans ces trois frameworks. On n’examinera pas <code>lattice</code>, qui n’est guère dynamique et pas très bon en cartographie. Restent donc deux approches : en base et en <code>ggplot2</code>.</p>

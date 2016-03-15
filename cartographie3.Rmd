@@ -1,0 +1,185 @@
+---
+title: "Introduction à la cartographie - avec R"
+author: "Joël Gombin"
+date: "2/2/2016"
+output:
+  html_document:
+    fig_height: 7
+    fig_width: 10
+    keep_md: yes
+    self_contained: no
+    theme: journal
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+
+# `tmap`
+
+## Lire un shape
+
+Commençons par importer un fichier shapefile :
+
+```{r prep}
+
+library(tmap)
+
+departements <- read_shape("./data/departements/DEPARTEMENT.shp")
+
+```
+
+On vérifie la projection utilisée :
+
+```{r proj}
+
+get_projection(departements)
+bb(departements)
+```
+
+On la modifie :
+
+```{r change_proj}
+# pour quelques projections possibles, voir ?get_proj4
+
+departements <- set_projection(departements, projection = "longlat") # coordonnées géographiques
+bb(departements)
+```
+
+## Représentation carte sans données
+
+```{r simple_carte}
+
+tm_shape(departements) +
+  tm_borders()
+
+```
+
+## Utiliser un fonds de carte OSM
+
+À noter que par défaut `read_osm` télécharge un raster (une image), mais qu'on peut aussi lui demander des données vectorielles (voir le manuel : `?read_osm`). 
+
+```{r fonds_carte}
+
+fonds <- read_osm(bb(departements, ext = 1.2), minNumTiles = 10)
+
+tm_shape(fonds) +
+  tm_raster() +
+tm_shape(departements) +
+  tm_borders(col = "white")
+
+```
+
+## Créer une carte choroplèthe
+
+On peut pour chaque couche (layer) choisir une esthétique. Encore faut-il avoir des données à représenter.
+
+```{r choroplethe}
+
+load("./data/Pres2012dpts.Rdata")
+
+departements <- append_data(departements, dpts, key.shp = "CODE_DEPT", key.data = "CodeDpt")
+
+tm_shape(fonds) +
+  tm_raster() +
+tm_shape(departements) +
+  tm_borders(col = "white") +
+  tm_fill(col = "Sarkozy2.exp", alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = "Sarkozy 2e tour") +
+tm_layout(legend.position = c("left", "bottom"))
+
+
+```
+
+## Créer une carte avec cercles proportionnels
+
+```{r cercles}
+tm_shape(fonds) +
+  tm_raster() +
+tm_shape(departements) +
+  tm_borders(col = "white") +
+  tm_bubbles(size = "Sarkozy2", 
+             col = "Sarkozy2.exp", 
+             alpha = 0.8, 
+             style = "quantile", 
+             n = 6, 
+             palette = "Reds", 
+             legend.format = list(text.separator = "à", digits = 1), 
+             title.col = "Sarkozy 2e tour", 
+             title.size = "Voix pour Sarkozy", 
+             legend.size.is.portrait = TRUE) +
+tm_layout(legend.position = c("left", "bottom"))
+
+```
+
+## Petits multiples
+
+```{r small_multiples}
+tm_shape(departements) +
+  tm_borders(col = "white") +
+  tm_fill(col = c("Hollande2.exp", "Sarkozy2.exp"), alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = c("Sarkozy 2e tour", "Hollande 2e tour")) +
+tm_layout(legend.position = c("left", "bottom"))
+
+```
+
+On peut également utiliser `tm_facets` si le dataframe est en mode long (une variable permet de dispatcher les cartes).
+
+## Cartographie interactive/web
+
+```{r interactif1}
+
+tm_shape(departements) +
+  tm_borders(col = "white") +
+  tm_fill(col = "Sarkozy2.exp", alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = "Sarkozy 2e tour") +
+tm_layout(legend.position = c("left", "bottom"))
+
+
+```
+
+```{r interactif2, eval=FALSE}
+ttm()
+
+tm_shape(departements) +
+  tm_borders(col = "white") +
+  tm_fill(col = "Sarkozy2.exp", alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = "Sarkozy 2e tour") +
+tm_layout(legend.position = c("left", "bottom"))
+
+```
+
+
+# `leaflet` et `mapview`
+
+Pour de la cartographie orientée interactive/web, [`leaflet`](https://rstudio.github.io/leaflet/) est le package le plus adapté. 
+
+Il fonctionne de manière simple, avec des pipes.
+
+```{r leaflet, cache=FALSE}
+library(leaflet)
+
+leaflet(data = departements) %>% 
+  addTiles() %>% 
+  addPolygons(fillColor = ~colorQuantile("Blues", departements@data$Sarkozy2.exp, n = 6)(Sarkozy2.exp), color = "transparent", fillOpacity = 0.6)
+```
+
+On peut ajouter des popups :
+
+```{r popups, cache=FALSE}
+library(htmltools)
+
+leaflet(data = departements) %>% 
+  addTiles() %>% 
+  addPolygons(fillColor = ~colorQuantile("Blues", departements@data$Sarkozy2.exp, n = 6)(Sarkozy2.exp), color = "transparent", fillOpacity = 0.6, popup = ~htmlEscape(paste0("Sarkozy (2e tour) : ", round(Sarkozy2.exp, 1)))) 
+```
+
+`mapview` permet d'explorer rapidement un shape.
+
+```{r mapview, cache=FALSE}
+
+library(mapview)
+
+mapview(departements)
+
+```
+

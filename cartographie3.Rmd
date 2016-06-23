@@ -64,7 +64,7 @@ tm_shape(departements) +
 
 ```{r fonds_carte}
 
-fonds <- read_osm(bb(departements, ext = 1.2), minNumTiles = 10)
+fonds <- read_osm(bb(departements, ext = 1.2), minNumTiles = 10, type = "stamen-watercolor")
 
 tm_shape(fonds) +
   tm_raster() +
@@ -87,8 +87,10 @@ tm_shape(fonds) +
   tm_raster() +
 tm_shape(departements) +
   tm_borders(col = "white") +
-  tm_fill(col = "Sarkozy2.exp", alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = "Sarkozy 2e tour") +
-tm_layout(legend.position = c("left", "bottom"))
+  tm_fill(col = "Sarkozy2.exp", alpha = 0.8, style = "quantile", n = 6, palette = "OrRd", legend.format = list(text.separator = "à", digits = 1), title = "Sarkozy 2e tour") +
+tm_layout(legend.position = c("left", "bottom")) +
+  tm_scale_bar(position = c("center", "bottom")) +
+  tm_compass()
 
 
 ```
@@ -119,7 +121,7 @@ tm_layout(legend.position = c("left", "bottom"))
 ```{r small_multiples}
 tm_shape(departements) +
   tm_borders(col = "white") +
-  tm_fill(col = c("Hollande2.exp", "Sarkozy2.exp"), alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = c("Sarkozy 2e tour", "Hollande 2e tour")) +
+  tm_fill(col = c("Hollande2.exp", "Sarkozy2.exp"), alpha = 0.8, style = "quantile", n = 6, palette = "Reds", legend.format = list(text.separator = "à", digits = 1), title = c("Hollande 2e tour", "Sarkozy 2e tour")) +
 tm_layout(legend.position = c("left", "bottom"))
 
 ```
@@ -170,7 +172,10 @@ library(htmltools)
 
 leaflet(data = departements) %>% 
   addTiles() %>% 
-  addPolygons(fillColor = ~colorQuantile("Blues", departements@data$Sarkozy2.exp, n = 6)(Sarkozy2.exp), color = "transparent", fillOpacity = 0.6, popup = ~htmlEscape(paste0("Sarkozy (2e tour) : ", round(Sarkozy2.exp, 1)))) 
+  addPolygons(fillColor = ~colorQuantile("Blues", departements@data$Sarkozy2.exp, n = 6)(Sarkozy2.exp), 
+              color = "transparent", 
+              fillOpacity = 0.6, 
+              popup = ~paste0("<em>Sarkozy (2e tour)</em> : ", round(Sarkozy2.exp, 1))) 
 ```
 
 `mapview` permet d'explorer rapidement un shape.

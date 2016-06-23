@@ -1,0 +1,181 @@
+---
+title: "Introduction à shiny"
+author: "Joël Gombin"
+output:
+  html_document:
+    fig_height: 7
+    fig_width: 10
+    keep_md: yes
+    self_contained: no
+    theme: journal
+    toc: yes
+    toc_depth: 2
+---
+
+# Quand utiliser shiny
+
+- interface utilisateur : app ou document interactif
+- besoin d'interaction (output réagit à un changement d'input)
+- ce besoin d'interaction ne peut pas être traité *côté client*
+- voir par exemple [htmlwidgets](www.htmlwidgets.org) pour cas où pas besoin de shiny, i.e. pas besoin d'une logique serveur complexe
+
+```{r htmlwidgets}
+library(networkD3)
+data(MisLinks, MisNodes)
+forceNetwork(Links = MisLinks, Nodes = MisNodes, Source = "source",
+             Target = "target", Value = "value", NodeID = "name",
+             Group = "group", opacity = 0.4)
+```
+
+# c'est quoi shiny ?
+
+Un framework créé par Rstudio, libre, gratuit, pensé pour le web d'aujourd'hui (HTML5, CSS, JS), mais qui ne nécessite pas de connaître ces notions : ça reste du R, on se concentre sur le R.
+
+[Extrêmement bien documenté](http://shiny.rstudio.com/), avec une communauté d'usagers dynamique, un développement rapide (cf. [gadgets](http://shiny.rstudio.com/articles/gadgets.html) et [addins](https://rstudio.github.io/rstudioaddins/) par exemple)... ça vaut le coût d'investir !
+
+Peut être utilisé en local pour soi-même, pour des collaborateurs/étudiants usagers de R/Rstudio, pour des collaborateurs non usagers de R, pour un grand public comme format de présentation/restitution en tant que tel ou dans une page HTML.
+
+Deux exemples parmi [tant](http://www.showmeshiny.com/) [d'autres](https://www.rstudio.com/products/shiny/shiny-user-showcase/) : [http://shiny.cepii.fr/risk-shocks-and-divergence/](http://shiny.cepii.fr/risk-shocks-and-divergence/) et [https://gallery.shinyapps.io/sampling_and_stderr/](https://gallery.shinyapps.io/sampling_and_stderr/)
+
+# Pour comprendre : un exemple récurrent
+
+[http://www.joelgombin.fr/shiny/LireMinInterieur/](http://www.joelgombin.fr/shiny/LireMinInterieur/)
+
+Source complète :  [sur github](https://github.com/joelgombin/LireMinInterieur)
+
+Fichier de test : [sur dropbox](https://www.dropbox.com/s/8uh7ua3htkmv55u/Reg_15_circo_T1.csv?dl=0) (régionales 2015)
+
+# Inputs, outputs, server
+
+Avant même de commencer à écrire une applicaton shiny, se demander :
+
+- quels sont [les inputs](http://shiny.rstudio.com/tutorial/lesson3/) ? (valeurs fournies par l'utilisateur, par quel biais ? Formulaire, widgets, fichier, source externe...)
+- quels sont les outputs ? (valeurs générées par l'application, qui réagissent aux modifications de l'input ? texte, [graphiques](http://shiny.rstudio.com/articles/images.html), [cartes](https://rstudio.github.io/leaflet/shiny.html), [tableau](http://shiny.rstudio.com/articles/datatables.html)...)
+- parfois un input peut *aussi* être un output, et vice versa ! (exemple : tableau)
+- quelles fonctions prenant les inputs comme paramètres produisent les outputs ?
+
+# Une application shiny, ce sont deux fonctions
+
+## Une fonction ui.R
+
+qui détaille l'interface utilisateur : inputs, outputs, mise en forme (par défaut en utilisant [bootstrap](http://shiny.rstudio.com/tutorial/lesson2/), mais on peut si on veut utiliser d'autres templates/frameworks). 
+
+
+```{r ui, eval = FALSE}
+library(shiny)
+
+shinyUI(fluidPage(
+  titlePanel("Transformer les fichiers électoraux du ministère de l'Intérieur"),
+    sidebarLayout(
+    sidebarPanel(
+      fileInput("file", label = h3("Sélectionner un fichier csv"), accept=c('text/csv', 'text/comma-separated-values,text/plain')),
+      checkboxInput("header", label="Y a-t-il des titres aux colonnes ?", value=TRUE),
+      radioButtons("separator", label="Séparateur", c("Virgule" = ",", "Point virgule" = ";")),
+      radioButtons("decimal", label="Séparateur décimal", c("Virgule" = ",", "Point" = ".")),
+      actionButton("load", "Lire le jeu de données"),
+      conditionalPanel(
+        condition = "input.load > 0",
+        htmlOutput("selectCol"),
+        textInput("keepnames", label="noms à donner aux colonnes conservées (doit inclure 'Inscrits' et 'Exprimés'"),
+        htmlOutput("selectCol2"),
+        numericInput("colStep", label="Combien y a-t-il de colonnes entre les colonnes contenant les nuances politiques ?", value=7, min=1, step=1),
+        numericInput("gap", label="Combien y a-t-il de colonnes entre les colonnes avec les étiquettes et celles avec le nombre de voix ?", value=3, min=1, step=1),
+        HTML("<BR>"),
+        actionButton("validate", "Transformer le fichier")
+        ),
+      helpText(HTML("<BR><BR><p>Cette application a été développée par <a href='http://www.joelgombin.fr'>Joël Gombin</a>.</p><p>Le code source est disponible sur <a href='http://www.github.com/joelgombin/LireMinInterieur'>mon compte Github</a>.</p>"))
+      ),
+    mainPanel(
+      tabsetPanel(id="tab",
+        tabPanel("Fichier avant transformation", dataTableOutput(outputId="tableau_before"), value="before"),
+        tabPanel("Fichier après transformation", dataTableOutput(outputId="tableau_after"), downloadButton(outputId="downloadData", label="Télécharger"), value="after"))
+      ))
+))
+```
+
+## une fonction server.R
+
+qui spécifie [comment les outputs sont liés aux inputs](http://shiny.rstudio.com/articles/build.html). C'est là que tout se passe en réalité.
+
+```{r server, eval = FALSE}
+
+library(shiny)
+library(LireMinInterieur)
+
+shinyServer(function(input, output, session) {
+  df <- reactive({
+    input$load
+    isolate({
+      if (input$load==0) df <- NULL
+      else {
+        # petit hack pour gérer l'encodage. Faut-il intégrer d'autres encodages ?
+        df <- tryCatch(read.csv((input$file)$datapath, header=input$header, sep=input$separator, dec=input$decimal, stringsAsFactor=FALSE, check.names = FALSE),
+                      error = function(c) read.csv((input$file)$datapath, header=input$header, sep=input$separator, dec=input$decimal, stringsAsFactor=FALSE, check.names = FALSE, fileEncoding="ISO8859-1"))  
+        names(df) <- iconv(names(df), from="", to="UTF-8")
+      }
+    })
+    return(df)
+  })
+  
+  output$tableau_before <- renderDataTable({
+    df()
+  }, options=list(pageLength=10))
+  
+  
+  output$selectCol <- renderUI({
+    selectizeInput("keep", label="Quelles colonnes faut-il conserver en l'état ?", choices=names(df()), multiple=TRUE)
+  })
+
+  observe({
+    updateTextInput(session, "keepnames", label="noms à donner aux colonnes conservées (doit inclure 'Inscrits' et 'Exprimés'", value=input$keep)
+  })  
+  
+  
+  output$selectCol2 <- renderUI({
+    selectizeInput("colInit", label="Quelle est la première colonne dans laquelle sont situées les nuances politiques ?", choices=names(df()), multiple=FALSE)
+  })
+  
+
+  # transfomation du jeu de données quand il change
+  
+  df_trans <- reactive({
+    # est dépendant de input$validate
+    input$validate
+    if (input$validate == 0) return(NULL)
+    # on isole la suite
+    
+    isolate({
+      index <- match(input$colInit, names(df()))
+      col <- (dim(df())[2] - index) %/% input$colStep
+      df_trans <- lire(df(), keep=input$keep, col=seq(from=index, by=input$colStep, length.out=col), keep.names=strsplit(input$keepnames, split=",")[[1]], gap=input$gap)
+    })
+    return(df_trans)
+  })
+  
+  output$tableau_after <- renderDataTable({
+    df_trans()
+  }, options=list(pageLength=10))
+  
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(con) {
+      write.csv(df_trans(), con, row.names=FALSE)
+    }
+  )
+  
+})
+
+
+```
+
+
+# Écrivez votre première application shiny
+
+- pour commencer, réfléchissez à une application (simple !) en identifiant bien inputs, outputs et logique serveur
+- partez d'une [interface utilisateur simple](http://shiny.rstudio.com/tutorial/lesson2/), créez un squelette de fichier `ui.R`
+- identifiez [comment coder les inputs](http://shiny.rstudio.com/tutorial/lesson3/)
+- identifiez [comment codes les outputs](http://shiny.rstudio.com/tutorial/lesson4/)
+- décrivez la [logique serveur](http://shiny.rstudio.com/tutorial/lesson4/)
+- utilisez google et/ou demandez-moi pour résoudre les difficultés !
